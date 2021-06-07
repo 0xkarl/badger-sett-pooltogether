@@ -20,7 +20,7 @@ contract BadgerYieldSource is IYieldSource {
         badgerSett = IBadgerSett(badgerSettAddr);
         badger = IBadger(badgerAddr);
     }
-    
+
     /// @notice Returns the ERC20 asset token used for deposits.
     /// @return The ERC20 asset token
     function depositToken() public view override returns (address) {
@@ -35,9 +35,7 @@ contract BadgerYieldSource is IYieldSource {
         uint256 shares = badgerSett.balanceOf(address(this));
         uint256 totalShares = badgerSett.totalSupply();
         uint256 badgerBalance =
-            shares
-                .mul(badgerSett.balance())
-                .div(totalShares);
+            shares.mul(badgerSett.balance()).div(totalShares);
         uint256 sourceShares = badgerSett.balanceOf(address(this));
 
         return (balances[addr].mul(badgerBalance).div(sourceShares));
@@ -64,7 +62,9 @@ contract BadgerYieldSource is IYieldSource {
         uint256 totalShares = badgerSett.totalSupply();
         uint256 badgerSettBadgerBalance = badgerSett.balance();
         uint256 requiredShares =
-            amount.mul(totalShares).div(badgerSettBadgerBalance);
+            amount.mul(totalShares).add(totalShares).sub(1).div(
+                badgerSettBadgerBalance
+            );
 
         uint256 badgerBeforeBalance = badger.balanceOf(address(this));
         badgerSett.withdraw(requiredShares);
