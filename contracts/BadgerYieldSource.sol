@@ -55,23 +55,23 @@ contract BadgerYieldSource is IYieldSource {
         balances[to] = balances[to].add(balanceDiff);
     }
 
-    /// @notice Redeems tokens from the yield source from the msg.sender, it burn yield bearing tokens and return token to the sender.
+    /// @notice Redeems tokens from the yield source to the msg.sender, it burns yield bearing tokens and returns token to the sender.
     /// @param amount The amount of `token()` to withdraw.  Denominated in `token()` as above.
     /// @return The actual amount of tokens that were redeemed.
     function redeemToken(uint256 amount) public override returns (uint256) {
         uint256 totalShares = badgerSett.totalSupply();
         uint256 badgerSettBadgerBalance = badgerSett.balance();
-        uint256 requiredShares =
-            amount.mul(totalShares).add(totalShares).sub(1).div(
-                badgerSettBadgerBalance
-            );
 
+        uint256 requiredShares = ((amount.mul(totalShares) + totalShares)).div(badgerSettBadgerBalance);
+        if(requiredShares == 0) return 0;
+
+        uint256 requiredSharesBalance = requiredShares.sub(1);
         uint256 badgerBeforeBalance = badger.balanceOf(address(this));
         badgerSett.withdraw(requiredShares);
         uint256 badgerAfterBalance = badger.balanceOf(address(this));
         uint256 badgerBalanceDiff = badgerAfterBalance.sub(badgerBeforeBalance);
 
-        balances[msg.sender] = balances[msg.sender].sub(requiredShares);
+        balances[msg.sender] = balances[msg.sender].sub(requiredSharesBalance);
         badger.transfer(msg.sender, badgerBalanceDiff);
         return (badgerBalanceDiff);
     }
